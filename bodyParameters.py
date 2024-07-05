@@ -1,8 +1,12 @@
 from fastapi import FastAPI, Path, Body
 from typing import Annotated
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 app = FastAPI(title="Body parameters")
+
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
 
 class Item(BaseModel):
     name: str
@@ -11,11 +15,17 @@ class Item(BaseModel):
     )
     price: float = Field(gt=0, title="This is price")
     tax: float | None = None
+    tags: list[str]         # to define string list
+    tags2: set[str] = set()
+    image: Image | None = None
+    images: list[Image] | None = None
 
 class User(BaseModel):
     user: str
     contact: int
     email: str | None = None
+
+
 
 @app.post("/items/{item_id}")
 async def add_items(
@@ -39,3 +49,11 @@ async def add_items(
 async def update_items(item_id: int, item: Annotated[Item, Body(embed=True)]):
     results = {"item ID": item_id, "Items": item}
     return results
+
+@app.put("/imageItem/{item_id}")
+async def upload_image(item_id: int, image: Image):
+    return {"Item": item_id, "Image": image}
+
+@app.post("/indexWeights/")
+async def upload_index_weights(weights: dict[int, float]):
+    return weights
